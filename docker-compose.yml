@@ -1,0 +1,82 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: medaudit_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medaudit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medaudit_password}
+      POSTGRES_DB: ${POSTGRES_DB:-medaudit_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medaudit}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: medaudit_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: medaudit_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+      - file_storage:/app/storage
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-medaudit}:${POSTGRES_PASSWORD:-medaudit_password}@db:5432/${POSTGRES_DB:-medaudit_db}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DEBUG=${DEBUG:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+      - NLP_SERVICE_URL=${NLP_SERVICE_URL:-http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build: .
+    container_name: medaudit_celery
+    command: celery -A app.core.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+      - file_storage:/app/storage
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-medaudit}:${POSTGRES_PASSWORD:-medaudit_password}@db:5432/${POSTGRES_DB:-medaudit_db}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DEBUG=${DEBUG:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+      - NLP_SERVICE_URL=${NLP_SERVICE_URL:-http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:
+  file_storage:
+
