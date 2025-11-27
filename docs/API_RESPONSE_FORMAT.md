@@ -227,3 +227,6 @@ GET /api/v1/reports/?status=completed&order_by=created_at&order_direction=desc&p
 - `Content-Disposition: attachment; filename="report.pdf"`
 
 
+
+
+

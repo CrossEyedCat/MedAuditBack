@@ -19,6 +19,8 @@ from app.api.v1.router import api_router
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.query_logger import QueryLoggerMiddleware
+from app.middleware.metrics import MetricsMiddleware
+from app.utils.metrics import get_metrics_response
 from fastapi.exceptions import RequestValidationError
 
 # Настройка логирования
@@ -57,7 +59,7 @@ app = FastAPI(
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,6 +70,9 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 # Логирование медленных запросов
 app.add_middleware(QueryLoggerMiddleware)
+
+# Метрики Prometheus
+app.add_middleware(MetricsMiddleware)
 
 # Rate limiting (только для production, в dev можно отключить)
 if not settings.DEBUG:
@@ -96,4 +101,10 @@ async def root():
 async def health_check():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint."""
+    return get_metrics_response()
 

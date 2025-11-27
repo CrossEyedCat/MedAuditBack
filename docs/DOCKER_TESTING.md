@@ -389,3 +389,6 @@ docker-compose up -d --scale backend=3
 5. Настройте резервное копирование БД
 
 
+
+
+

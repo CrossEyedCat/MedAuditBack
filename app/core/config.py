@@ -62,17 +62,22 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"],
-        description="Разрешенные источники для CORS",
+    CORS_ORIGINS: str = Field(
+        default="http://localhost:3000,http://localhost:5173",
+        description="Разрешенные источники для CORS (через запятую)",
     )
+    
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Возвращает список разрешенных источников для CORS."""
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
     @property
     def allowed_file_types_list(self) -> List[str]:
         """Возвращает список разрешенных типов файлов."""
         return [t.strip() for t in self.ALLOWED_FILE_TYPES.split(",")]
-
-        class Config:
+    
+    class Config:
             env_file = ".env"
             case_sensitive = True
             extra = "ignore"  # Игнорировать лишние переменные окружения

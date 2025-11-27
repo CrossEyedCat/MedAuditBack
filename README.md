@@ -15,10 +15,11 @@
 
 ### Предварительные требования
 
-- Docker и Docker Compose
+- Docker и Docker Compose (для локальной разработки)
+- Kubernetes (для production развертывания)
 - Python 3.11+ (для локальной разработки)
 
-### Быстрый старт с Docker
+### Быстрый старт с Docker (локальная разработка)
 
 1. Клонируйте репозиторий
 2. Скопируйте `.env.example` в `.env` и настройте переменные окружения:
@@ -35,6 +36,29 @@
    ```
 5. API будет доступно по адресу: http://localhost:8000
 6. Документация API: http://localhost:8000/api/docs
+
+### Развертывание в Kubernetes (Production)
+
+**Автоматическое развертывание (рекомендуется):**
+
+```powershell
+# Windows
+.\k8s\deploy-all.ps1
+```
+
+**Ручное развертывание:**
+
+См. подробное руководство: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+
+**Быстрая проверка:**
+
+```powershell
+# Проверьте статус
+kubectl get pods -n medaudit
+
+# Откройте API
+kubectl port-forward svc/backend-service 8000:8000 -n medaudit
+```
 
 ### Локальная разработка
 
@@ -134,11 +158,66 @@ pytest --cov=app --cov-report=term-missing
 - `REDIS_URL` - подключение к Redis
 - `SECRET_KEY` - секретный ключ для JWT (сгенерируйте новый для production)
 
+## Развертывание в Kubernetes
+
+Для production развертывания с поддержкой горизонтального масштабирования используйте Kubernetes.
+
+### Быстрый старт на Windows
+
+**Автоматическая проверка и развертывание:**
+```powershell
+.\k8s\check-and-deploy.ps1
+```
+
+Скрипт автоматически:
+- Проверит наличие Docker и kubectl
+- Проверит доступность Kubernetes кластера
+- Установит Metrics Server (если нужно)
+- Создаст файл секретов из шаблона
+- Соберет Docker образ (если нужно)
+- Развернет приложение
+
+**Ручное развертывание:**
+
+1. Убедитесь, что Kubernetes кластер запущен:
+   - Docker Desktop: Settings → Kubernetes → Enable Kubernetes
+   - Или используйте Minikube/Kind
+
+2. Подготовьте секреты:
+   ```powershell
+   Copy-Item k8s\secrets.yaml.example k8s\secrets.yaml
+   # Отредактируйте k8s/secrets.yaml
+   ```
+
+3. Соберите Docker образ:
+   ```powershell
+   docker build -f Dockerfile.prod -t medaudit-backend:latest .
+   ```
+
+4. Разверните:
+   ```powershell
+   .\k8s\deploy.ps1
+   ```
+
+**Документация:**
+- [Быстрый старт на Windows](k8s/QUICKSTART_WINDOWS.md)
+- [Полная документация Kubernetes](docs/KUBERNETES_DEPLOYMENT.md)
+
+### Особенности Kubernetes развертывания
+
+- ✅ Автоматическое горизонтальное масштабирование (HPA)
+- ✅ Минимум 2 реплики Backend и Celery Worker
+- ✅ Масштабирование до 10 реплик на основе CPU/Memory
+- ✅ Автоматические health checks и readiness probes
+- ✅ Автоматическое выполнение миграций БД
+- ✅ Persistent storage для файлов и данных
+
 ## Документация
 
 - Swagger UI: http://localhost:8000/api/docs
 - ReDoc: http://localhost:8000/api/redoc
 - OpenAPI JSON: http://localhost:8000/api/openapi.json
+- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md)
 
 ## Лицензия
 

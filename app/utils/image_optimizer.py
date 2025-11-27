@@ -79,3 +79,6 @@ async def optimize_image(
         return image_content
 
 
+
+
+

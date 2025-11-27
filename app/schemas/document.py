@@ -67,3 +67,6 @@ class DocumentFilterParams(BaseModel):
     order_direction: str = Field(default="desc", pattern="^(asc|desc)$", description="Направление сортировки")
 
 
+
+
+

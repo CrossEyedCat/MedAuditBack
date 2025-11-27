@@ -302,3 +302,6 @@ async def test_pdf_generation_integration(client: AsyncClient, test_user: User, 
     assert b"PDF" in pdf_content[:10]  # PDF заголовок
 
 
+
+
+

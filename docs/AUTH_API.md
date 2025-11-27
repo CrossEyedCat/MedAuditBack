@@ -263,3 +263,6 @@ const getCurrentUser = async (accessToken) => {
 - `422 Unprocessable Entity` - Ошибка валидации данных
 
 
+
+
+

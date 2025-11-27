@@ -459,3 +459,6 @@ async def test_export_report_pdf_not_completed(client: AsyncClient, test_user: U
     assert "не завершен" in response.json()["detail"]
 
 
+
+
+

@@ -91,3 +91,6 @@ docker-compose down -v
 - Настройте `NLP_SERVICE_URL` и `NLP_SERVICE_API_KEY` когда NLP сервис будет готов
 
 
+
+
+

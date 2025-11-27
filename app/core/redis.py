@@ -36,3 +36,6 @@ async def close_redis() -> None:
         redis_client = None
 
 
+
+
+

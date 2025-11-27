@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: medaudit
+  labels:
+    app: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: medaudit
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: medaudit-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: medaudit-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: medaudit-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: medaudit-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: POSTGRES_PORT
+        - name: DATABASE_URL
+          value: "postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: REDIS_URL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: medaudit-secrets
+              key: SECRET_KEY
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: DEBUG
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: LOG_LEVEL
+        - name: BACKEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: BACKEND_URL
+        - name: NLP_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: NLP_SERVICE_URL
+        - name: NLP_SERVICE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: medaudit-secrets
+              key: NLP_SERVICE_API_KEY
+              optional: true
+        - name: FILE_STORAGE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: FILE_STORAGE_PATH
+        - name: MAX_FILE_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: MAX_FILE_SIZE
+        - name: ALLOWED_FILE_TYPES
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: ALLOWED_FILE_TYPES
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: CORS_ORIGINS
+        - name: ALGORITHM
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: ALGORITHM
+        - name: ACCESS_TOKEN_EXPIRE_MINUTES
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: ACCESS_TOKEN_EXPIRE_MINUTES
+        - name: REFRESH_TOKEN_EXPIRE_DAYS
+          valueFrom:
+            configMapKeyRef:
+              name: medaudit-config
+              key: REFRESH_TOKEN_EXPIRE_DAYS
+        volumeMounts:
+        - name: file-storage
+          mountPath: /app/storage
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+      volumes:
+      - name: file-storage
+        persistentVolumeClaim:
+          claimName: file-storage-pvc
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z postgres-service 5432; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready"
+      - name: wait-for-redis
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z redis-service 6379; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "Redis is ready"
+

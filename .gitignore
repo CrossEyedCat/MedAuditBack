@@ -69,4 +69,10 @@ Thumbs.db
 # Alembic
 alembic/versions/*.pyc
 
+# Kubernetes secrets
+k8s/secrets.yaml
+
+
+
+
 

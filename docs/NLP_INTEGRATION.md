@@ -297,3 +297,6 @@ result = await nlp_callback(callback_data, db_session)
 3. Проверьте логи приложения
 
 
+
+
+

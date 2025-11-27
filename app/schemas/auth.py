@@ -67,3 +67,6 @@ class MessageResponse(BaseModel):
     message: str = Field(..., description="Сообщение")
 
 
+
+
+

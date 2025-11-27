@@ -181,3 +181,6 @@ async def test_load_pdf_generation(client: AsyncClient, test_user: User, db_sess
     assert (end_time - start_time) < 30  # Генерация PDF может быть медленной
 
 
+
+
+

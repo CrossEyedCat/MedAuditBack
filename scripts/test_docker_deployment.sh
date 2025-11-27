@@ -170,3 +170,6 @@ echo "Для остановки контейнеров:"
 echo "  docker-compose down"
 
 
+
+
+

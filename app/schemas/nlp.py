@@ -58,3 +58,6 @@ class NLPCallbackResponse(BaseModel):
     message: str = Field(default="Callback received", description="Сообщение")
 
 
+
+
+

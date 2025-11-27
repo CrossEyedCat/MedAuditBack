@@ -239,3 +239,6 @@ async def test_auth_service_authenticate(db_session: AsyncSession):
     assert user is None
 
 
+
+
+

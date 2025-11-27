@@ -207,3 +207,6 @@ pytest tests/test_auth.py
 См. `CHECKLIST.md` для детального плана разработки.
 
 
+
+
+

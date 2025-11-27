@@ -266,3 +266,6 @@ docker-compose up -d
 3. Проверьте логи: `docker-compose logs celery_worker`
 
 
+
+
+
