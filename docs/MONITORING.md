@@ -327,3 +327,5 @@ kubectl logs deployment/backend -n medaudit
 
 
 
+
+

@@ -111,3 +111,5 @@ echo -e "  kubectl logs -f deployment/celery-worker -n medaudit"
 
 
 
+
+

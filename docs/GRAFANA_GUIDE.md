@@ -347,3 +347,5 @@ kubectl port-forward svc/prometheus-service 9090:9090 -n medaudit
 
 
 
+
+

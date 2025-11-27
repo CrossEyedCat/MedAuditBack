@@ -171,3 +171,5 @@ kubectl logs deployment/prometheus -n medaudit --tail=50
 
 
 
+
+

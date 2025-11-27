@@ -264,3 +264,5 @@ kubectl describe deployment backend -n medaudit
 
 
 
+
+

@@ -4,8 +4,8 @@
 param(
     [string]$Url = "http://localhost:8000",
     [int]$Duration = 60,
-    [int]$RequestsPerSecond = 10,
-    [int]$Concurrent = 5
+    [int]$RequestsPerSecond = 100,
+    [int]$Concurrent = 50
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
